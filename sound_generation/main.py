@@ -43,7 +43,7 @@ train_hugo = True
 
 if train_hugo:
     while True:
-        j = 1 ### train only hugo call
+        #j = 1 ### train only hugo call
         #j=15 ### train only other call
         frames = []
         if j<= 10:
