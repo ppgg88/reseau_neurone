@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy import signal
 from scipy.io import wavfile
 from random import randint
+import numpy as np
 
 def load_data():
     """Load data from datasets folder"""
@@ -17,6 +18,10 @@ def load_data():
 def wav_to_mfcc(file_path):
     """Convert wav to mfcc"""
     sample_rate, samples = wavfile.read(file_path)
+    samples = samples[:48000]
+    if len(samples) < 48000:
+        for i in range(48000-len(samples)):
+            samples = np.append(samples,0.0000000001)
     frequencies, times, spectrogram = signal.spectrogram(samples, sample_rate)
 
     spectrogram = spectrogram/spectrogram.max()
@@ -48,6 +53,7 @@ def get_data(train=0.8):
         return
     data_brut, labels = load_data()
     mfcc_data = get_mfcc_data(data_brut, labels)
+    print(mfcc_data[0][0].shape)
     train_data = []
     train_labels = []
     y_train = []
@@ -78,7 +84,7 @@ def get_data(train=0.8):
 
 
 if __name__ == '__main__':
-    train_data, train_labels, test_data, test_labels = get_data()
-    print(train_data)
+    train_data, train_labels, y_train, test_data, test_labels, y_test = get_data()
+    print(len(train_data))
     
     

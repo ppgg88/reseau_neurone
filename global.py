@@ -4,9 +4,10 @@ from sklearn.metrics import accuracy_score, log_loss, confusion_matrix
 from tqdm import tqdm
 from data import get_data
 import pickle 
+import seaborn as sns
 
 class DeepNeuralNetwork:
-    def __init__(self, X, y, hidden_layers = (16, 16, 16), threshold = 0.5):
+    def __init__(self, X, y, hidden_layers = (16, 16, 16), threshold = 0.5, from_file = None):
         self.hidden_layers = hidden_layers
         self.threshold = threshold
         self.dimensions = list(hidden_layers)
@@ -26,7 +27,6 @@ class DeepNeuralNetwork:
         C = len(self.parametres) // 2
         for c in range(1, C + 1):
             Z = self.parametres['W' + str(c)].dot(activations['A' + str(c - 1)]) + self.parametres['b' + str(c)]
-            
             activations['A' + str(c)] = 1 / (1 + np.exp(-Z))
         return activations
 
@@ -64,15 +64,14 @@ class DeepNeuralNetwork:
             activations = self.forward_propagation(X_train)
             gradients = self.back_propagation(y_train, activations)
             self.update(gradients, learning_rate)
-            if i%10 == 0:
-                #pour afficher le logloss et l'accuracy à chaque 10 itérations
-                Af = activations['A' + str(C)]
-                training_history[i, 0] = (log_loss(y_train.flatten(), Af.flatten()))
-                y_pred = self.predict(X_train)
-                training_history[i, 1] = (accuracy_score(y_train.flatten(), y_pred.flatten()))
-                if test != None:
-                    y_test_pred = self.predict(test[0])
-                    training_history[i, 2] = (accuracy_score(test[1].flatten(), y_test_pred.flatten()))
+            #pour afficher le logloss et l'accuracy à chaque 10 itérations
+            Af = activations['A' + str(C)]
+            training_history[i, 0] = (log_loss(y_train.flatten(), Af.flatten()))
+            y_pred = self.predict(X_train)
+            training_history[i, 1] = (accuracy_score(y_train.flatten(), y_pred.flatten()))
+            if test != None:
+                y_test_pred = self.predict(test[0])
+                training_history[i, 2] = (accuracy_score(test[1].flatten(), y_test_pred.flatten()))
         plt.figure(figsize=(12, 4))
         plt.subplot(1, 2, 1)
         plt.plot(training_history[:, 0], label='train loss')
@@ -98,20 +97,31 @@ class DeepNeuralNetwork:
     def confusion_matrix(self, X_test, y_test):
         y_pred = self.predict(X_test)
         """affiche la matrice de confusion"""
-        confusion_matrix(y_test.flatten(), y_pred.flatten())
+        cnf_matrix = confusion_matrix(y_test.flatten(), y_pred.flatten())
+        print(cnf_matrix)
+        """affiche la matrice de confusion avec seaborn"""
+        plt.figure(figsize=(10, 8))
+        sns.heatmap(cnf_matrix,
+            xticklabels=['hugo', 'other'],
+            yticklabels=['hugo', 'other'],
+            annot=True, fmt='g')
+        plt.xlabel('Prediction')
+        plt.ylabel('Label')
+        plt.draw()
+
                         
-    def self_load(self, filename):
+    def self_load(filename):
         with open(filename, 'rb') as f:
-            self = pickle.load(f)   
+            return(pickle.load(f))
     
     
 if __name__ == "__main__":
-    x_train, train_labels, y_train, x_test, test_labels, y_test = get_data()
+    x_train_, train_labels_, y_train_, x_test_, test_labels_, y_test_ = get_data()
     
-    x_train = np.array(x_train)
-    y_train = np.array(y_train)
-    x_test = np.array(x_test)
-    y_test = np.array(y_test)
+    x_train = np.array(x_train_)
+    y_train = np.array(y_train_)
+    x_test = np.array(x_test_)
+    y_test = np.array(y_test_)
     y_train = y_train.T
     y_test = y_test.T
     
@@ -125,6 +135,16 @@ if __name__ == "__main__":
     network.training(x_train_reshape, y_train, nb_iter=5000, learning_rate = 0.1, test=(x_test_reshape, y_test))
     network.confusion_matrix(x_test_reshape, y_test)
     network.save("model.hgo")
+    
+    
+    """
+    network = DeepNeuralNetwork.self_load("model.hgo")
+    network.confusion_matrix(x_test_reshape, y_test)
+    network.training(x_train_reshape, y_train, nb_iter=2000, learning_rate = 0.1, test=(x_test_reshape, y_test))
+    network.save("model.hgo")
+    network.confusion_matrix(x_test_reshape, y_test)
+    """
+    
     print("test accuracy : " + str(network.test(x_test_reshape, y_test)))
     
 
