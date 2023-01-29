@@ -88,7 +88,15 @@ class DeepNeuralNetwork:
 
     def test(self, X_test, y_test):
         y_pred = self.predict(X_test)
-        return accuracy_score(y_test.flatten(), y_pred.flatten())
+        #return accuracy_score(y_test.flatten(), y_pred.flatten())
+        return self.accuracy(y_test, y_pred)
+    
+    def test_specific(self, X_test, y_test):
+        y_pred = self.predict(X_test)
+        responce = []
+        for i in range(len(y_pred)):
+            responce.append(self.accuracy(y_test, y_pred, n=i))
+        return responce
 
     def save(self, filename):
         with open(filename, 'wb') as f:
@@ -119,6 +127,21 @@ class DeepNeuralNetwork:
         with open(filename, 'rb') as f:
             return(pickle.load(f))
     
+    def accuracy(self, y_reel, y_pred, n=None):
+        if n != None:
+            y_reel = y_reel[n]
+            y_pred = y_pred[n]
+        else :
+            y_pred = y_pred.flatten()
+            y_reel = y_reel.flatten()
+        right = 0
+        total = len(y_pred)
+        for i in range(len(y_pred)):
+            if y_pred[i] == y_reel[i]:
+                right += 1
+        return right/total
+
+
     
 if __name__ == "__main__":
     x_train_, train_labels_, y_train_, x_test_, test_labels_, y_test_ = get_data()
@@ -135,20 +158,20 @@ if __name__ == "__main__":
     
     x_test = x_test.T
     x_test_reshape = x_test.reshape(-1, x_test.shape[-1])/x_test.max()
-    network = DeepNeuralNetwork(x_train_reshape, y_train, hidden_layers = (32,32))
-    network.training(x_train_reshape, y_train, nb_iter=5000, learning_rate = 0.1, test=(x_test_reshape, y_test))
+    
+    '''
+    network = DeepNeuralNetwork(x_train_reshape, y_train, hidden_layers = (32,64))
+    network.training(x_train_reshape, y_train, nb_iter=10000, learning_rate = 0.1, test=(x_test_reshape, y_test))
     network.confusion_matrix(x_test_reshape, y_test)
     network.save("model.hgo")
-    
-    
-    """
+    '''
     network = DeepNeuralNetwork.self_load("model.hgo")
     network.confusion_matrix(x_test_reshape, y_test)
-    network.training(x_train_reshape, y_train, nb_iter=2000, learning_rate = 0.1, test=(x_test_reshape, y_test))
-    network.save("model.hgo")
-    network.confusion_matrix(x_test_reshape, y_test)
-    """
+    #network.training(x_train_reshape, y_train, nb_iter=500, learning_rate = 0.1, test=(x_test_reshape, y_test))
+    #network.save("model.hgo")
     
-    print("test accuracy : " + str(network.test(x_test_reshape, y_test)))
     
-
+    print("test accuracy Global : " + str(network.test(x_test_reshape, y_test)))
+    print("test accuracy hugo : " + str(network.test_specific(x_test_reshape, y_test)[0]))
+    print("test accuracy other : " + str(network.test_specific(x_test_reshape, y_test)[1]))
+    
