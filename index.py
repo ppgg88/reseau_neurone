@@ -130,7 +130,6 @@ if __name__ == "__main__":
     
     x_test = x_test.T
     x_test_reshape = x_test.reshape(-1, x_test.shape[-1])/x_test.max()
-    
     network = DeepNeuralNetwork(x_train_reshape, y_train, hidden_layers = (32,32))
     network.training(x_train_reshape, y_train, nb_iter=5000, learning_rate = 0.1, test=(x_test_reshape, y_test))
     network.confusion_matrix(x_test_reshape, y_test)

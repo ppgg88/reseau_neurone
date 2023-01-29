@@ -6,12 +6,12 @@ from scipy.io import wavfile
 from random import randint
 import numpy as np
 
-def load_data():
+def load_data(path='datasets'):
     """Load data from datasets folder"""
-    possible_labels = listdir('datasets')
+    possible_labels = listdir(path)
     data_brut = []
     for i in possible_labels:
-        data_temp = listdir('datasets/'+i)
+        data_temp = listdir(path+'/'+i)
         data_brut.append(data_temp)
     return data_brut, possible_labels
 
