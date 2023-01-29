@@ -39,7 +39,6 @@ while True:
     while level < TREASHOLD:
         data_s = stream.read(FRAMES_PER_BUFFER)
         level = get_max_level(data_s)
-        
     seconds = 1
     frame.append(data_s)
     for i in range(0, int(RATE / FRAMES_PER_BUFFER * seconds)):
@@ -65,4 +64,3 @@ while True:
         print("hugo")
     else:
         print("autre")
-    print("vous pouvez parler :")

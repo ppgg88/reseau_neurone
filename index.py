@@ -109,6 +109,11 @@ class DeepNeuralNetwork:
         plt.ylabel('Label')
         plt.draw()
 
+    def set_threshold(self, threshold):
+        self.threshold = threshold
+    
+    def get_threshold(self):
+        return self.threshold
                         
     def self_load(filename):
         with open(filename, 'rb') as f:
