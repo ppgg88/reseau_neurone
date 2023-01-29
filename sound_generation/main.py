@@ -72,12 +72,12 @@ if train_hugo:
             while ('data_h_'+str(data_id)+'.wav') in listdir('datasets/hugo'):
                 data_id += 1
                 np.save('data_id.npy', data_id)
-            path = 'datasets/hugo/data_h_'+str(data_id)+'.wav'
+            path = 'datasets/hugo/data_c_h_'+str(data_id)+'.wav'
         else :
             while ('data_a_'+str(data_id)+'.wav') in listdir('datasets/other'):
                 data_id += 1
                 np.save('data_id.npy', data_id)
-            path = 'datasets/other/data_a_'+str(data_id)+'.wav'
+            path = 'datasets/other/data_c_a_'+str(data_id)+'.wav'
         
         with wave.open(path, 'wb') as wav_file:
             # Définissez les paramètres du fichier wave
