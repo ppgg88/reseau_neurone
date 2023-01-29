@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score, log_loss
+from sklearn.metrics import accuracy_score, log_loss, confusion_matrix
 from tqdm import tqdm
-from data import load_data
+from data import get_data
+import pickle 
 
 class DeepNeuralNetwork:
     def __init__(self, X, y, hidden_layers = (16, 16, 16), threshold = 0.5):
@@ -25,6 +26,7 @@ class DeepNeuralNetwork:
         C = len(self.parametres) // 2
         for c in range(1, C + 1):
             Z = self.parametres['W' + str(c)].dot(activations['A' + str(c - 1)]) + self.parametres['b' + str(c)]
+            
             activations['A' + str(c)] = 1 / (1 + np.exp(-Z))
         return activations
 
@@ -81,7 +83,7 @@ class DeepNeuralNetwork:
         if test != None:
             plt.plot(training_history[:, 2], label='test acc')
             plt.legend()
-        plt.show()
+        plt.draw()
         
         return training_history
 
@@ -89,8 +91,27 @@ class DeepNeuralNetwork:
         y_pred = self.predict(X_test)
         return accuracy_score(y_test.flatten(), y_pred.flatten())
 
+    def save(self, filename):
+        with open(filename, 'wb') as f:
+            pickle.dump(self, f)
+
+    def confusion_matrix(self, X_test, y_test):
+        y_pred = self.predict(X_test)
+        """affiche la matrice de confusion"""
+        confusion_matrix(y_test.flatten(), y_pred.flatten())
+                        
+    def self_load(self, filename):
+        with open(filename, 'rb') as f:
+            self = pickle.load(f)   
+    
+    
 if __name__ == "__main__":
-    x_train, y_train, x_test, y_test = load_data()
+    x_train, train_labels, y_train, x_test, test_labels, y_test = get_data()
+    
+    x_train = np.array(x_train)
+    y_train = np.array(y_train)
+    x_test = np.array(x_test)
+    y_test = np.array(y_test)
     y_train = y_train.T
     y_test = y_test.T
     
@@ -100,16 +121,10 @@ if __name__ == "__main__":
     x_test = x_test.T
     x_test_reshape = x_test.reshape(-1, x_test.shape[-1])/x_test.max()
     
-    m_train = 1000
-    m_test = 200
-    
-    x_test_reshape = x_test_reshape[:, :m_test]
-    x_train_reshape = x_train_reshape[:, :m_train]
-    y_test = y_test[:, :m_test]
-    y_train = y_train[:, :m_train]
-    
-    network = DeepNeuralNetwork(x_train_reshape, y_train, hidden_layers = (16,16))
-    network.training(x_train_reshape, y_train, nb_iter=3000, learning_rate = 0.1, test=(x_test_reshape, y_test))
+    network = DeepNeuralNetwork(x_train_reshape, y_train, hidden_layers = (32,32))
+    network.training(x_train_reshape, y_train, nb_iter=5000, learning_rate = 0.1, test=(x_test_reshape, y_test))
+    network.confusion_matrix(x_test_reshape, y_test)
+    network.save("model.hgo")
     print("test accuracy : " + str(network.test(x_test_reshape, y_test)))
     
 
