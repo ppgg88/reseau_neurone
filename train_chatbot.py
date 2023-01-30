@@ -87,14 +87,12 @@ def pred_class(text, vocab, labels):
     bow = bag_of_words(text, vocab)
     bow = np.array([bow]).T
     bow = bow.reshape(-1, bow.shape[-1])/bow.max()
-    result = model.predict_proba(bow)[0]
-    print("result : ", result)
+    result = model.predict_proba(bow)
     probabilities = max(result)
-    print("proba : ",probabilities)
+    print(np.where(result == [probabilities]))
+    print("res")
     #print("proba : " + str(float(max(probabilities))))
-    
-    if(max(probabilities) < 0.022):
-        return []
+
 
     thresh = 0.5
     y_pred = [[idx, res] for idx, res in enumerate(result) if res > thresh]
@@ -120,9 +118,10 @@ if __name__ == "__main__":
     train_y = train_y.T
     print(train_x.shape)
     print(train_y.shape)
-    model = DeepNeuralNetwork(train_x, train_y, hidden_layers=[64, 32, 16])
-    model.training(train_x, train_y,nb_iter=500, learning_rate=0.01)
-    model.save("var/chat.hgo")
+    #model = DeepNeuralNetwork(train_x, train_y, hidden_layers=[64, 32, 16])
+    #model.training(train_x, train_y,nb_iter=500, learning_rate=0.01)
+    #model.save("var/chat.hgo")
+    model = DeepNeuralNetwork.self_load("var/chat.hgo")
     print("model is ready to use")
     pred = pred_class("bonjour hugo", words, classes)
     print(pred)
