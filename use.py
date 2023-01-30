@@ -37,6 +37,8 @@ def set_ambiance_level():
     stream.stop_stream()
     return (sum(level)/len(level))+700
 
+
+
 TREASHOLD = set_ambiance_level()
 print('TREASHOLD : ', TREASHOLD)
 

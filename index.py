@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, log_loss, confusion_matrix
 from tqdm import tqdm
-from data import get_data
+from data import get_data, wav_to_mfcc
 import pickle 
 import seaborn as sns
 
@@ -51,6 +51,12 @@ class DeepNeuralNetwork:
             self.parametres['W' + str(c)] = self.parametres['W' + str(c)] - learning_rate * gradients['dW' + str(c)]
             self.parametres['b' + str(c)] = self.parametres['b' + str(c)] - learning_rate * gradients['db' + str(c)]
 
+    def predict_proba(self, X):
+        activations = self.forward_propagation(X)
+        C = len(self.parametres) // 2
+        Af = activations['A' + str(C)]
+        return Af
+    
     def predict(self, X):
         activations = self.forward_propagation(X)
         C = len(self.parametres) // 2
@@ -82,7 +88,7 @@ class DeepNeuralNetwork:
         if test != None:
             plt.plot(training_history[:, 2], label='test acc')
             plt.legend()
-        plt.draw()
+        plt.show()
         
         return training_history
 
@@ -141,7 +147,11 @@ class DeepNeuralNetwork:
                 right += 1
         return right/total
 
-
+    def normalize_wav(file):
+        data = wav_to_mfcc(file)[2]
+        x = np.array([data])
+        x = x.T
+        return(x.reshape(-1, x.shape[-1])/x.max())
     
 if __name__ == "__main__":
     x_train_, train_labels_, y_train_, x_test_, test_labels_, y_test_ = get_data()
