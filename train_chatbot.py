@@ -21,6 +21,7 @@ def data_train_preprocessing():
     classes = []
     doc_X = []
     doc_y = []
+
     # parcourir avec une boucle For toutes les intentions
     # tokéniser chaque pattern et ajouter les tokens à la liste words, les patterns et
     # le tag associé à l'intention sont ajoutés aux listes correspondantes
@@ -38,6 +39,9 @@ def data_train_preprocessing():
         # ajouter le tag aux classes s'il n'est pas déjà là 
         if intent["tag"] not in classes:
             classes.append(intent["tag"])
+    
+    print("doc_X: ", doc_X)
+    print("doc_y: ", doc_y)
     # lemmatiser tous les mots du vocabulaire et les convertir en minuscule
     # si les mots n'apparaissent pas dans la ponctuation
     words = [lemmatizer.lemmatize(word.lower()) for word in words if word not in string.punctuation]
@@ -45,27 +49,21 @@ def data_train_preprocessing():
     # set pour s'assurer qu'il n'y a pas de doublons
     words = sorted(set(words))
     classes = sorted(set(classes))
-
     # liste pour les données d'entraînement
     training = []
     out_empty = [0] * len(classes)
     # création du modèle d'ensemble de mots
+    train_X = []
+    train_y = []
     for idx, doc in enumerate(doc_X):
-        bow = []
-        text = lemmatizer.lemmatize(doc.lower())
-        for word in words:
-            bow.append(1) if word in text else bow.append(0)
+        train_X.append(bag_of_words(doc, words))
         # marque l'index de la classe à laquelle le pattern atguel est associé à
         output_row = list(out_empty)
         output_row[classes.index(doc_y[idx])] = 1
         # ajoute le one hot encoded BoW et les classes associées à la liste training
-        training.append([bow, output_row])
-    # mélanger les données et les convertir en array
-    random.shuffle(training)
-    training = np.array(training, dtype=object)
-    # séparer les features et les labels target
-    train_X = np.array(list(training[:, 0]))
-    train_y = np.array(list(training[:, 1]))
+        train_y.append(output_row)
+    train_X = np.array(train_X)
+    train_y = np.array(train_y)
     return train_X, train_y, words, classes
 
 
@@ -83,14 +81,14 @@ def bag_of_words(text, vocab):
                 bow[idx] = 1
     return np.array(bow)
 
-def pred_class(text, vocab, labels): 
-    bow = bag_of_words(text, vocab)
-    bow = np.array([bow]).T
-    bow = bow.reshape(-1, bow.shape[-1])/bow.max()
-    result = model.predict_proba(bow)
-    probabilities = max(result)
-    print(np.where(result == [probabilities]))
-    print("res")
+def pred_class(text, vocab, labels):
+    x = []
+    for idx, doc in enumerate(text):
+        x.append(bag_of_words(doc, vocab))
+    x = np.array(x).T
+    x = x.reshape(-1, x.shape[-1])
+    result = model.predict(x)
+    print(labels[np.where(result == np.amax(result))[0][0]])
     #print("proba : " + str(float(max(probabilities))))
 
 
@@ -112,18 +110,21 @@ def get_response(intents_list):
 
 
 if __name__ == "__main__":
-    train_x, train_y, words, classes = data_train_preprocessing()
-    train_x = train_x.T
-    train_x = train_x.reshape(-1, train_x.shape[-1])/train_x.max()
-    train_y = train_y.T
-    print(train_x.shape)
-    print(train_y.shape)
-    #model = DeepNeuralNetwork(train_x, train_y, hidden_layers=[64, 32, 16])
-    #model.training(train_x, train_y,nb_iter=500, learning_rate=0.01)
-    #model.save("var/chat.hgo")
-    model = DeepNeuralNetwork.self_load("var/chat.hgo")
+    train_x_p, train_y_p, words, classes = data_train_preprocessing()
+    train_x = train_x_p.T
+    train_x = train_x.reshape(-1, train_x.shape[-1])
+    train_y = train_y_p.T
+    model = DeepNeuralNetwork(train_x, train_y, hidden_layers=[64, 32, 16])
+    model.training(train_x, train_y,nb_iter=5000, learning_rate=0.001)
+    model.save("var/chat.hgo")
+    #model = DeepNeuralNetwork.self_load("var/chat.hgo")
     print("model is ready to use")
-    pred = pred_class("bonjour hugo", words, classes)
-    print(pred)
+    print(classes)
+    pred = pred_class(["qu'est-ce que tu es en train de faire"], words, classes)
+    print("----------------------------------------")
+    pred = pred_class(["comment te sens tu"], words, classes)
+    print("----------------------------------------")
+    pred = pred_class(["Quel est ton acteur préféré"], words, classes)
+    print("----------------------------------------")
     
     
